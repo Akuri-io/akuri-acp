@@ -1,4 +1,5 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -8,9 +9,15 @@ import { create, insert, search, count, remove, AnyOrama } from '@orama/orama';
 @Injectable()
 export class LibrarianService implements OnModuleInit {
   private readonly logger = new Logger(LibrarianService.name);
-  private readonly docsPath =
-    '/mnt/0e67f549-8f2b-4fee-92ea-605bc0fd16ea/MULTIROOT/AKURI';
+  private readonly docsPath: string;
   private db: AnyOrama;
+
+  constructor(private configService: ConfigService) {
+    // Get docs path from environment variable with fallback to default
+    this.docsPath = this.configService.get<string>('AKURI_DOCS_PATH') || 
+      '/mnt/0e67f549-8f2b-4fee-92ea-605bc0fd16ea/MULTIROOT/AKURI';
+    this.logger.log(`Documentos configurados en: ${this.docsPath}`);
+  }
 
   async onModuleInit() {
     console.error(`[AKURI] 🚀 Iniciando sistema de búsqueda V3...`);
