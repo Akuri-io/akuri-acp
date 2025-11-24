@@ -1,28 +1,51 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { LibrarianService } from '../librarian/librarian.service';
+import { LoggerService } from '../../common/logger/logger.service';
+
+interface SearchResult {
+  path: string;
+  score: number;
+  metadata: Record<string, any>;
+  snippet: string;
+}
 
 @Injectable()
 export class ConsistencyService {
-  private readonly logger = new Logger(ConsistencyService.name);
-
-  constructor(private librarian: LibrarianService) {}
+  constructor(
+    private librarian: LibrarianService,
+    private logger: LoggerService,
+  ) {
+    this.logger.setContext?.('ConsistencyService');
+  }
 
   /**
    * Genera un Prompt Estructurado basado en un Blueprint y variables.
    * Además, inyecta automáticamente las reglas de oro (Naming Convention).
    */
-  async generateFromBlueprint(blueprintName: string, variables: Record<string, string>) {
-    console.error(`[AKURI ARCHITECT] Generando prompt desde blueprint: ${blueprintName}`);
+  async generateFromBlueprint(
+    blueprintName: string,
+    variables: Record<string, string>,
+  ) {
+    this.logger.info('Generating prompt from blueprint', {
+      blueprintName,
+      variables,
+      service: 'ConsistencyService',
+    });
 
     // 1. Buscar el Blueprint
-    const docs = await this.librarian.searchDocs(`BLUEPRINT ${blueprintName}`, 5);
+    const docs: SearchResult[] = await this.librarian.searchDocs(
+      `BLUEPRINT ${blueprintName}`,
+      5,
+    );
     // Buscamos uno que tenga "BLUEPRINT" en el nombre o path
-    const blueprintDoc = docs.find(d => d.path.toUpperCase().includes('BLUEPRINT'));
+    const blueprintDoc = docs.find((d: SearchResult) =>
+      d.path.toUpperCase().includes('BLUEPRINT'),
+    );
 
     if (!blueprintDoc) {
       return {
         success: false,
-        error: `No encontré ningún archivo Blueprint llamado "${blueprintName}". Asegúrate de crear uno (ej: BLUEPRINT.table.md).`
+        error: `No encontré ningún archivo Blueprint llamado "${blueprintName}". Asegúrate de crear uno (ej: BLUEPRINT.table.md).`,
       };
     }
 
@@ -64,7 +87,7 @@ Return ONLY the code. No chatter.
 
     return {
       success: true,
-      prompt: finalPrompt
+      prompt: finalPrompt,
     };
   }
 
@@ -83,6 +106,6 @@ Return ONLY the code. No chatter.
 - Use specific suffixes: .service, .component, .guard.
       `;
     }
-    return "WARNING: No Naming Conventions found.";
+    return 'WARNING: No Naming Conventions found.';
   }
 }

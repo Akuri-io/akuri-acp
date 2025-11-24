@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -8,13 +9,25 @@ async function bootstrap() {
     // O mejor aún: false para silencio total en producción
   });
 
-  // 2. Asegurar que no escuche en puerto HTTP si solo vamos a usar Stdio
-  // O si quieres HTTP para health checks, asegura que no interfiera.
-  // Para MCP puro local, usamos init() en lugar de listen()
-  
-  await app.init();
-  
-  // Nota: McpService se inicia en onModuleInit, así que al hacer init()
-  // el servidor MCP empieza a escuchar en Stdio.
+  const configService = app.get(ConfigService);
+  const isMcpMode = configService.get<string>('MCP_MODE') === 'true';
+  const port = configService.get<number>('PORT', 3001);
+
+  // Enable CORS for web interface
+  app.enableCors();
+
+  if (!isMcpMode) {
+    // HTTP mode: Start web server for configuration interface
+    await app.listen(port);
+    console.log(`🚀 HTTP Server running on http://localhost:${port}`);
+  } else {
+    // MCP mode: Only initialize, don't listen on HTTP port
+    await app.init();
+    console.log(`🔧 MCP Server initialized (stdio mode)`);
+  }
+
+  // Nota: McpService se inicia en onModuleInit, así que en ambos casos
+  // el servidor MCP está disponible para conexiones stdio si es necesario.
 }
-bootstrap();
+
+void bootstrap();

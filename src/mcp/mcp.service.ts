@@ -1,10 +1,26 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
 import { LibrarianService } from '../akuri-core/librarian/librarian.service';
 import { WorkflowService } from '../akuri-core/workflow/workflow.service';
-import { ConsistencyService } from 'src/akuri-core/consitency/consistency.service';
+import { ConsistencyService } from '../akuri-core/consitency/consistency.service';
+import {
+  SearchDocsSchema,
+  CheckWorkflowSchema,
+  GenerateBlueprintSchema,
+  BlueprintVariablesSchema,
+  type SearchDocsInput,
+  type CheckWorkflowInput,
+  type GenerateBlueprintInput,
+  type BlueprintVariables,
+} from '../common/validation/schemas';
+
+interface SearchResult {
+  path: string;
+  score: number;
+  metadata: Record<string, any>;
+  snippet: string;
+}
 
 @Injectable()
 export class McpService implements OnModuleInit {
@@ -35,16 +51,12 @@ export class McpService implements OnModuleInit {
     // Herramienta 1: Búsqueda Inteligente
     this.server.tool(
       'akuri_search_docs',
-      {
-        query: z.string().describe('La búsqueda semántica o palabras clave'),
-        limit: z
-          .number()
-          .optional()
-          .describe('Número máximo de documentos a retornar'),
-      },
-      async (args: { query: string; limit?: number }) => {
-        const { query, limit } = args;
-        const results = await this.librarian.searchDocs(query, limit || 5);
+      SearchDocsSchema.shape,
+      async (args: SearchDocsInput) => {
+        // Validación adicional con Zod (aunque MCP ya valida con el schema)
+        const validatedArgs = SearchDocsSchema.parse(args);
+        const { query, limit } = validatedArgs;
+        const results = await this.librarian.searchDocs(query, limit);
 
         return {
           content: [
@@ -59,23 +71,12 @@ export class McpService implements OnModuleInit {
 
     this.server.tool(
       'akuri_check_workflow',
-      {
-        intent: z
-          .enum(['PLAN', 'BUILD', 'REFACTOR', 'AUDIT'])
-          .describe('La actividad que el usuario quiere realizar.'),
-        feature_context: z
-          .string()
-          .describe(
-            'Palabras clave del feature (ej: "login", "user-table", "auth").',
-          ),
-      },
-      async ({
-        intent,
-        feature_context,
-      }: {
-        intent: 'PLAN' | 'BUILD' | 'REFACTOR' | 'AUDIT';
-        feature_context: string;
-      }) => {
+      CheckWorkflowSchema.shape,
+      async (args: CheckWorkflowInput) => {
+        // Validación adicional con Zod (aunque MCP ya valida con el schema)
+        const validatedArgs = CheckWorkflowSchema.parse(args);
+        const { intent, feature_context } = validatedArgs;
+
         const validation = await this.workflow.validateWorkflow(
           intent,
           feature_context,
@@ -84,6 +85,7 @@ export class McpService implements OnModuleInit {
         if (!validation.allowed) {
           // Retornamos un mensaje claro de error pero en formato texto para que la IA lo entienda y se lo diga al usuario
           return {
+            isError: true,
             content: [
               {
                 type: 'text' as const,
@@ -103,7 +105,7 @@ export class McpService implements OnModuleInit {
                   message:
                     validation.message || 'Workflow validated successfully',
                   required_docs_found: validation.context
-                    ? validation.context.map((d: any) => d.path)
+                    ? validation.context.map((d: SearchResult) => d.path)
                     : [], // Solo pasamos las rutas para no saturar
                 },
                 null,
@@ -117,35 +119,25 @@ export class McpService implements OnModuleInit {
 
     this.server.tool(
       'akuri_generate_blueprint',
-      {
-        blueprint_name: z
-          .string()
-          .describe(
-            'Nombre del blueprint a usar (ej: "datatable", "crud-service")',
-          ),
-        variables: z
-          .string()
-          .describe(
-            'JSON string con las variables (ej: {"entity": "User", "color": "blue"})',
-          ),
-      },
-      async ({
-        blueprint_name,
-        variables,
-      }: {
-        blueprint_name: string;
-        variables: string;
-      }) => {
-        let varsObj = {};
+      GenerateBlueprintSchema.shape,
+      async (args: GenerateBlueprintInput) => {
+        // Validación adicional con Zod (aunque MCP ya valida con el schema)
+        const validatedArgs = GenerateBlueprintSchema.parse(args);
+        const { blueprint_name, variables } = validatedArgs;
+
+        // Parse and validate JSON variables
+        let varsObj: BlueprintVariables;
         try {
-          varsObj = JSON.parse(variables);
-        } catch (e) {
+          const parsed = JSON.parse(variables);
+          varsObj = BlueprintVariablesSchema.parse(parsed);
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Invalid JSON or variables schema';
           return {
             isError: true,
             content: [
               {
                 type: 'text' as const,
-                text: "Error: 'variables' debe ser un JSON válido.",
+                text: `Error: ${errorMessage}`,
               },
             ],
           };

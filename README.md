@@ -45,9 +45,12 @@ npm install
 ### 2. Path Configuration
 The system needs to know where your documentation lives.
 
-*Note: Currently, the path is configured in `src/akuri-core/librarian/librarian.service.ts` (variable `docsPath`).*
+**Required Environment Variable:**
+```bash
+AKURI_DOCS_PATH=/path/to/your/akuri/documents
+```
 
-> **Recommendation:** Ensure this path points to your absolute root Akuri folder (e.g., `/mnt/.../AKURI`).
+> **Important:** This environment variable is now **required**. The application will fail to start without it. Copy `.env.example` to `.env` and configure the path.
 
 ### 3. Build
 Since MCP runs the compiled code, it is vital to run the build command after any change:
