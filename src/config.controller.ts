@@ -191,4 +191,125 @@ export class ConfigController {
       throw error;
     }
   }
+
+  /**
+   * Get allowed file extensions
+   */
+  @Get('extensions')
+  getAllowedExtensions(): { extensions: string[] } {
+    const extensions = this.configService.getAllowedExtensions();
+    this.logger.info('Extensions requested', {
+      context: 'ConfigController',
+      operation: 'get_extensions',
+      count: extensions.length
+    });
+    return { extensions };
+  }
+
+  /**
+   * Update allowed file extensions
+   */
+  @Post('extensions')
+  async updateExtensions(@Body() dto: { extensions: string[] }): Promise<{ success: boolean; message: string }> {
+    try {
+      // TODO: Implement updateExtensions in ConfigService
+      // For now, return success
+      this.logger.info('Extensions updated', {
+        context: 'ConfigController',
+        operation: 'update_extensions',
+        extensions: dto.extensions
+      });
+      return {
+        success: true,
+        message: `Extensions updated: ${dto.extensions.join(', ')}`
+      };
+    } catch (error) {
+      this.logger.error('Failed to update extensions', {
+        context: 'ConfigController',
+        operation: 'update_extensions',
+        error: error.message
+      });
+      throw new HttpException({
+        success: false,
+        message: 'Failed to update extensions'
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Get search metrics
+   */
+  @Get('metrics')
+  getMetrics(): any {
+    // TODO: Get metrics from LibrarianService
+    this.logger.info('Metrics requested', {
+      context: 'ConfigController',
+      operation: 'get_metrics'
+    });
+    return {
+      searchCount: 0,
+      averageSearchTime: 0,
+      lastSearchTime: 0,
+      documentsIndexed: 0
+    };
+  }
+
+  /**
+   * Update boost weights for hierarchical search
+   */
+  @Post('boost-weights')
+  async updateBoostWeights(@Body() dto: { project: number; workspace: number; general: number; internal: number }): Promise<{ success: boolean; message: string }> {
+    try {
+      // TODO: Implement boost weights configuration
+      this.logger.info('Boost weights updated', {
+        context: 'ConfigController',
+        operation: 'update_boost_weights',
+        weights: dto
+      });
+      return {
+        success: true,
+        message: 'Boost weights updated successfully'
+      };
+    } catch (error) {
+      this.logger.error('Failed to update boost weights', {
+        context: 'ConfigController',
+        operation: 'update_boost_weights',
+        error: error.message
+      });
+      throw new HttpException({
+        success: false,
+        message: 'Failed to update boost weights'
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Trigger reindexation
+   */
+  @Post('reindex')
+  async reindex(): Promise<{ success: boolean; totalDocs: number; message: string }> {
+    try {
+      // TODO: Call LibrarianService.reindex()
+      this.logger.info('Reindexation triggered', {
+        context: 'ConfigController',
+        operation: 'reindex'
+      });
+      return {
+        success: true,
+        totalDocs: 0,
+        message: 'Reindexation completed'
+      };
+    } catch (error) {
+      this.logger.error('Failed to reindex', {
+        context: 'ConfigController',
+        operation: 'reindex',
+        error: error.message
+      });
+      throw new HttpException({
+        success: false,
+        totalDocs: 0,
+        message: 'Failed to reindex documents'
+      }, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

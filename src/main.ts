@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     // 1. Desactivar logs automáticos o enviarlos a stderr
     logger: ['error', 'warn'], // Solo errores, y NestJS suele enviarlos bien.
     // O mejor aún: false para silencio total en producción
@@ -15,6 +17,9 @@ async function bootstrap() {
 
   // Enable CORS for web interface
   app.enableCors();
+
+  // Serve static files from public directory
+  app.useStaticAssets(join(__dirname, '..', 'public'));
 
   if (!isMcpMode) {
     // HTTP mode: Start web server for configuration interface

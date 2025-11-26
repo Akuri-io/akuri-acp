@@ -27,7 +27,7 @@ export class HealthController {
       // Check filesystem access to docs directories
       () => {
         try {
-          const docsPaths = this.librarian.docsPaths;
+          const docsPaths = this.librarian.getDocsPaths();
           const results = docsPaths.map(docsPath => {
             const exists = fs.existsSync(docsPath);
             const isReadable = exists && fs.statSync(docsPath).isDirectory();
@@ -144,7 +144,7 @@ export class HealthController {
     const searchMetrics = this.librarian.getMetrics();
 
     // Add additional metrics
-    const docsPaths = this.librarian.docsPaths;
+    const docsPaths = this.librarian.getDocsPaths();
     const docsPathsStatus = docsPaths.map(path => ({
       path,
       exists: fs.existsSync(path),

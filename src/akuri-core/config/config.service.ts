@@ -150,10 +150,24 @@ export class AkuriConfigService {
   }
 
   /**
+   * Get allowed file extensions for documents
+   */
+  getAllowedExtensions(): string[] {
+    const defaultExts = ['.md', '.txt', '.markdown', '.rst', '.adoc', '.pdf'];
+    const extsConfig = this.configService.get<string>('AKURI_ALLOWED_EXTS', '');
+    
+    if (extsConfig.trim()) {
+      return extsConfig.split(',').map(e => e.trim().toLowerCase()).filter(e => e.length > 0);
+    }
+    
+    return defaultExts;
+  }
+
+  /**
    * Check if file is a document (markdown, text, etc.)
    */
   private isDocumentFile(filename: string): boolean {
-    const documentExtensions = ['.md', '.txt', '.markdown', '.rst', '.adoc'];
+    const documentExtensions = this.getAllowedExtensions();
     const ext = path.extname(filename).toLowerCase();
     return documentExtensions.includes(ext);
   }
