@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Delete, Body, Param, HttpException, HttpStatus } from '@nestjs/common';
 import { AkuriConfigService } from './akuri-core/config/config.service';
+import { LibrarianService } from './akuri-core/librarian/librarian.service';
 import { LoggerService } from './common/logger/logger.service';
 
 interface AddPathDto {
@@ -14,6 +15,7 @@ interface TestPathDto {
 export class ConfigController {
   constructor(
     private configService: AkuriConfigService,
+    private librarianService: LibrarianService,
     private logger: LoggerService,
   ) {}
 
@@ -37,17 +39,29 @@ export class ConfigController {
   }
 
   /**
-   * Get current document paths
+   * Get current document paths with details
    */
   @Get('paths')
-  getDocumentPaths(): { paths: string[] } {
+  getDocumentPaths(): { paths: Array<{ path: string; documentCount: number; exists: boolean; isDirectory: boolean }> } {
     const paths = this.configService.getDocumentPaths();
+    
+    const pathsWithDetails = paths.map(path => {
+      const testResult = this.configService.testPath(path);
+      return {
+        path,
+        documentCount: testResult.documentCount || 0,
+        exists: testResult.valid,
+        isDirectory: testResult.valid
+      };
+    });
+    
     this.logger.info('Document paths requested', {
       context: 'ConfigController',
       operation: 'get_paths',
       pathCount: paths.length
     });
-    return { paths };
+    
+    return { paths: pathsWithDetails };
   }
 
   /**
@@ -289,15 +303,17 @@ export class ConfigController {
   @Post('reindex')
   async reindex(): Promise<{ success: boolean; totalDocs: number; message: string }> {
     try {
-      // TODO: Call LibrarianService.reindex()
       this.logger.info('Reindexation triggered', {
         context: 'ConfigController',
         operation: 'reindex'
       });
+      
+      const totalDocs = await this.librarianService.reindex();
+      
       return {
         success: true,
-        totalDocs: 0,
-        message: 'Reindexation completed'
+        totalDocs,
+        message: `Reindexation completed: ${totalDocs} documents`
       };
     } catch (error) {
       this.logger.error('Failed to reindex', {

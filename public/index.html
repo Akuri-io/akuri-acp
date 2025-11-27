@@ -258,15 +258,15 @@
                 return;
             }
 
-            tbody.innerHTML = paths.map(path => `
+            tbody.innerHTML = paths.map(pathInfo => `
                 <tr>
-                    <td class="py-3 pr-4 font-mono text-sm">${path}</td>
+                    <td class="py-3 pr-4 font-mono text-sm">${pathInfo.path}</td>
                     <td class="py-3 pr-4">
                         <span class="px-2 py-1 bg-success bg-opacity-20 text-success rounded text-xs">✓ Válida</span>
                     </td>
-                    <td class="py-3 pr-4 text-gray-400">-</td>
+                    <td class="py-3 pr-4 text-gray-300">${pathInfo.documentCount || 0}</td>
                     <td class="py-3">
-                        <button onclick="removePath('${path}')" class="text-error hover:text-red-400 text-sm">
+                        <button onclick="removePath('${pathInfo.path}')" class="text-error hover:text-red-400 text-sm">
                             Eliminar
                         </button>
                     </td>
