@@ -1,34 +1,51 @@
 import { Injectable } from '@nestjs/common';
 import { logger } from '../../config/logger.config';
+import * as winston from 'winston';
 
 @Injectable()
 export class LoggerService {
   private context: string = 'App';
 
-  constructor() {}
+  constructor() {
+    // Initialize logger if not already done
+    if (!logger) {
+      // Create a basic logger to prevent errors
+      const basicLogger = winston.createLogger({
+        level: 'info',
+        transports: [new winston.transports.Console()],
+      });
+      // Assign to the exported logger
+      (require('../../config/logger.config') as any).logger = basicLogger;
+    }
+  }
 
   setContext(context: string) {
     this.context = context;
   }
 
   error(message: string, meta?: any) {
-    logger.error(message, { context: this.context, ...meta });
+    if (logger) logger.error(message, { context: this.context, ...meta });
+    else console.error(`[${this.context}] ERROR: ${message}`, meta);
   }
 
   warn(message: string, meta?: any) {
-    logger.warn(message, { context: this.context, ...meta });
+    if (logger) logger.warn(message, { context: this.context, ...meta });
+    else console.warn(`[${this.context}] WARN: ${message}`, meta);
   }
 
   info(message: string, meta?: any) {
-    logger.info(message, { context: this.context, ...meta });
+    if (logger) logger.info(message, { context: this.context, ...meta });
+    else console.log(`[${this.context}] INFO: ${message}`, meta);
   }
 
   http(message: string, meta?: any) {
-    logger.http(message, { context: this.context, ...meta });
+    if (logger) logger.http(message, { context: this.context, ...meta });
+    else console.log(`[${this.context}] HTTP: ${message}`, meta);
   }
 
   debug(message: string, meta?: any) {
-    logger.debug(message, { context: this.context, ...meta });
+    if (logger) logger.debug(message, { context: this.context, ...meta });
+    else console.debug(`[${this.context}] DEBUG: ${message}`, meta);
   }
 
   // Convenience methods for common operations

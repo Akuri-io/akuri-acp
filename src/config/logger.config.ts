@@ -33,13 +33,13 @@ export function createLogger(configService: ConfigService) {
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     winston.format.errors({ stack: true }),
     winston.format.json(),
-    winston.format.colorize({ all: true }),
+    isMcpMode ? winston.format.uncolorize() : winston.format.colorize({ all: true }),
   );
 
   const consoleFormat = winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     winston.format.errors({ stack: true }),
-    winston.format.colorize({ all: true }),
+    isMcpMode ? winston.format.uncolorize() : winston.format.colorize({ all: true }),
     winston.format.printf(({ timestamp, level, message, context, ...meta }) => {
       const ctx = context ? `[${String(context)}]` : '';
       const metaStr = Object.keys(meta).length
@@ -51,8 +51,9 @@ export function createLogger(configService: ConfigService) {
 
   const transports: winston.transport[] = [];
 
-  // Solo agregar console transport si NO estamos en modo MCP
+  // En modo MCP, NO agregamos ningún transporte para silencio total
   if (!isMcpMode) {
+    // Console transport solo en modo NO-MCP
     transports.push(
       new winston.transports.Console({
         format: consoleFormat,
@@ -60,8 +61,8 @@ export function createLogger(configService: ConfigService) {
     );
   }
 
-  // File transports for production (siempre disponibles)
-  if (isProduction) {
+  // File transports for production (siempre disponibles, excepto en MCP)
+  if (isProduction && !isMcpMode) {
     transports.push(
       new winston.transports.File({
         filename: 'logs/error.log',
@@ -88,6 +89,7 @@ export function createLogger(configService: ConfigService) {
     levels,
     format,
     transports,
+    silent: isMcpMode, // Silenciar completamente en modo MCP
   });
 }
 

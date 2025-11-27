@@ -54,6 +54,7 @@ describe('WorkflowService', () => {
           score: 0.9,
           metadata: { type: 'DESIGN' },
           snippet: 'Design document content',
+          source_type: 'general',
         },
       ];
 
@@ -75,12 +76,14 @@ describe('WorkflowService', () => {
           score: 0.9,
           metadata: { type: 'DESIGN' },
           snippet: 'Design document',
+          source_type: 'general',
         },
         {
           path: 'PLAN.test-context.md',
           score: 0.8,
           metadata: { type: 'PLAN' },
           snippet: 'Plan document',
+          source_type: 'general',
         },
       ];
 
@@ -102,6 +105,7 @@ describe('WorkflowService', () => {
           score: 0.9,
           metadata: { type: 'DESIGN' },
           snippet: 'Design document',
+          source_type: 'general',
         },
       ];
 
@@ -126,6 +130,7 @@ describe('WorkflowService', () => {
           score: 0.9,
           metadata: { type: 'AUDIT' },
           snippet: 'Audit document',
+          source_type: 'general',
         },
       ];
 
@@ -156,6 +161,7 @@ describe('WorkflowService', () => {
           score: 0.9,
           metadata: { type: 'DESIGN' },
           snippet: 'Design content',
+          source_type: 'general',
         },
       ];
 
@@ -175,6 +181,7 @@ describe('WorkflowService', () => {
           score: 0.9,
           metadata: { type: 'DESIGN' },
           snippet: 'Design content',
+          source_type: 'general',
         },
       ];
 
@@ -194,6 +201,7 @@ describe('WorkflowService', () => {
           score: 0.9,
           metadata: { type: 'OTHER' },
           snippet: 'Other content',
+          source_type: 'general',
         },
       ];
 

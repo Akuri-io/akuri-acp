@@ -22,7 +22,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "kill:port": "kill -9 $(lsof -t -i:3151)",
+    "kill:port": "kill -9 $(lsof -t -i:3001)",
     "git:fix": "git rm -r --cached .; git add .; git commit -m 'Untracked files issue resolved to fix .gitignore'; "
   },
   "dependencies": {

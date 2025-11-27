@@ -22,17 +22,14 @@ export class LibrarianService implements OnModuleInit {
     private configService: ConfigService,
     private loggerService: LoggerService,
   ) {
-    // Get docs paths from environment variable - required
+    // Get docs paths from environment variable - optional for basic functionality
     const docsPathConfig = this.configService.get<string>('AKURI_DOCS_PATH');
-    if (!docsPathConfig) {
-      throw new Error('AKURI_DOCS_PATH environment variable is required');
-    }
-
-    // Support multiple paths separated by commas
-    this.docsPaths = docsPathConfig.split(',').map(path => path.trim()).filter(path => path.length > 0);
-
-    if (this.docsPaths.length === 0) {
-      throw new Error('At least one valid path must be provided in AKURI_DOCS_PATH');
+    if (docsPathConfig) {
+      // Support multiple paths separated by commas
+      this.docsPaths = docsPathConfig.split(',').map(path => path.trim()).filter(path => path.length > 0);
+    } else {
+      // Default to empty array if not configured
+      this.docsPaths = [];
     }
 
     // Set logger context after validation
@@ -46,8 +43,23 @@ export class LibrarianService implements OnModuleInit {
       operation: 'init',
     });
     this.initDB();
-    await this.initialScan();
-    this.startWatcher();
+
+    // Only scan and watch if we have paths configured
+    if (this.docsPaths.length > 0) {
+      // Ejecutar scan en segundo plano sin bloquear la inicialización
+      this.initialScan().catch(err => {
+        this.loggerService.error('Error during initial scan', {
+          operation: 'init_scan_error',
+          error: err.message,
+        });
+      });
+
+      this.startWatcher();
+    } else {
+      this.loggerService.info('No document paths configured, skipping scan and watcher setup', {
+        operation: 'init_skip',
+      });
+    }
   }
 
   private initDB() {

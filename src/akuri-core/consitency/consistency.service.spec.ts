@@ -57,6 +57,7 @@ describe('ConsistencyService', () => {
         score: 0.9,
         metadata: { type: 'BLUEPRINT' },
         snippet: 'Create a table with {{entity}} and columns: {{columns}}',
+        source_type: 'general',
       };
 
       jest
@@ -95,12 +96,14 @@ describe('ConsistencyService', () => {
           score: 0.9,
           metadata: { type: 'BLUEPRINT' },
           snippet: 'Blueprint content',
+          source_type: 'general',
         },
         {
           path: 'other-document.md',
           score: 0.8,
           metadata: { type: 'OTHER' },
           snippet: 'Other content',
+          source_type: 'general',
         },
       ];
 
@@ -119,6 +122,7 @@ describe('ConsistencyService', () => {
         metadata: { type: 'BLUEPRINT' },
         snippet:
           'Create {{componentType}} component for {{entity}} with {{fields}}',
+        source_type: 'general',
       };
 
       jest
@@ -145,6 +149,7 @@ describe('ConsistencyService', () => {
         score: 0.9,
         metadata: { type: 'BLUEPRINT' },
         snippet: 'Create service for {{entity}}',
+        source_type: 'general',
       };
 
       const mockGuardrailsDoc = {
@@ -152,6 +157,7 @@ describe('ConsistencyService', () => {
         score: 0.8,
         metadata: { type: 'GUIDELINES' },
         snippet: 'Naming conventions content',
+        source_type: 'general',
       };
 
       jest
@@ -176,6 +182,7 @@ describe('ConsistencyService', () => {
         score: 0.9,
         metadata: { type: 'BLUEPRINT' },
         snippet: 'Simple blueprint without variables',
+        source_type: 'general',
       };
 
       jest
@@ -194,6 +201,7 @@ describe('ConsistencyService', () => {
         score: 0.9,
         metadata: { type: 'BLUEPRINT' },
         snippet: 'Component template',
+        source_type: 'general',
       };
 
       jest

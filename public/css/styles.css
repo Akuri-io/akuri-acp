@@ -1,0 +1,6 @@
+@theme {
+    --color-primary: #3b82f6;
+    --color-success: #10b981;
+    --color-error: #ef4444;
+}
+@variant dark (&:where(.dark, .dark *));

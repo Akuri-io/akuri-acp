@@ -70,6 +70,7 @@ describe('McpService', () => {
           score: 0.9,
           metadata: { title: 'Test' },
           snippet: 'Test content...',
+          source_type: 'general',
         },
       ];
 

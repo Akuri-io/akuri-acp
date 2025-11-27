@@ -6,7 +6,7 @@ import { IngestionModule } from './ingestion/ingestion.module';
 
 @Module({
   providers: [WorkflowService, ConsistencyService],
-  imports: [LibrarianModule, IngestionModule],
+  imports: [LibrarianModule, /* IngestionModule */],
   exports: [LibrarianModule, WorkflowService, ConsistencyService],
 })
 export class AkuriCoreModule {}

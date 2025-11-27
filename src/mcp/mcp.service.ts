@@ -1,4 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { LibrarianService } from '../akuri-core/librarian/librarian.service';
@@ -30,6 +31,7 @@ export class McpService implements OnModuleInit {
     private librarian: LibrarianService,
     private workflow: WorkflowService,
     private consistency: ConsistencyService,
+    private configService: ConfigService,
   ) {
     this.server = new McpServer({
       name: 'Akuri Context Protocol',
@@ -40,11 +42,17 @@ export class McpService implements OnModuleInit {
   async onModuleInit() {
     this.registerTools();
 
-    // Conectar el transporte STDIO
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
+    // Conectar el transporte STDIO solo si estamos en modo MCP
+    const isMcpMode = this.configService.get<string>('MCP_MODE') === 'true';
 
-    // IMPORTANTE: No usar console.log después de esto para cosas que no sean MCP
+    if (isMcpMode) {
+      const transport = new StdioServerTransport();
+      await this.server.connect(transport);
+    }
+  }
+
+  async connectTransport(transport: any) {
+    return this.server.connect(transport);
   }
 
   private registerTools() {
@@ -171,6 +179,6 @@ export class McpService implements OnModuleInit {
       },
     );
 
-    // Aquí agregaremos luego 'akuri_check_workflow' y 'akuri_generate_blueprint'
+    // // Aquí agregaremos luego
   }
 }
