@@ -21,7 +21,9 @@ export const SearchDocsSchema = z.object({
 export const CheckWorkflowSchema = z.object({
   intent: z
     .enum(['PLAN', 'BUILD', 'REFACTOR', 'AUDIT'], {
-      errorMap: () => ({ message: 'Intent must be one of: PLAN, BUILD, REFACTOR, AUDIT' }),
+      errorMap: () => ({
+        message: 'Intent must be one of: PLAN, BUILD, REFACTOR, AUDIT',
+      }),
     })
     .describe('La actividad que el usuario quiere realizar.'),
   feature_context: z
@@ -29,7 +31,9 @@ export const CheckWorkflowSchema = z.object({
     .min(1, 'Feature context cannot be empty')
     .max(200, 'Feature context too long')
     .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Feature context contains invalid characters')
-    .describe('Palabras clave del feature (ej: "login", "user-table", "auth").'),
+    .describe(
+      'Palabras clave del feature (ej: "login", "user-table", "auth").',
+    ),
 });
 
 // Schema for akuri_generate_blueprint tool
@@ -44,20 +48,25 @@ export const GenerateBlueprintSchema = z.object({
     .string()
     .min(1, 'Variables cannot be empty')
     .max(5000, 'Variables JSON too large')
-    .describe('JSON string con las variables (ej: {"entity": "User", "color": "blue"})'),
+    .describe(
+      'JSON string con las variables (ej: {"entity": "User", "color": "blue"})',
+    ),
 });
 
 // Schema for blueprint variables (parsed JSON) - compatible with existing implementation
-export const BlueprintVariablesSchema = z.record(
-  z.string().min(1).max(100),
-  z.string().min(1).max(1000) // For now, keep as strings to match existing implementation
-).refine(
-  (vars) => Object.keys(vars).length > 0,
-  'Variables object cannot be empty'
-).refine(
-  (vars) => Object.keys(vars).length <= 20,
-  'Too many variables (max 20)'
-);
+export const BlueprintVariablesSchema = z
+  .record(
+    z.string().min(1).max(100),
+    z.string().min(1).max(1000), // For now, keep as strings to match existing implementation
+  )
+  .refine(
+    (vars) => Object.keys(vars).length > 0,
+    'Variables object cannot be empty',
+  )
+  .refine(
+    (vars) => Object.keys(vars).length <= 20,
+    'Too many variables (max 20)',
+  );
 
 // Type exports for TypeScript
 export type SearchDocsInput = z.infer<typeof SearchDocsSchema>;

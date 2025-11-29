@@ -15,7 +15,7 @@ export class LoggerService {
         transports: [new winston.transports.Console()],
       });
       // Assign to the exported logger
-      (require('../../config/logger.config') as any).logger = basicLogger;
+      require('../../config/logger.config').logger = basicLogger;
     }
   }
 

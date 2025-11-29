@@ -156,7 +156,11 @@ describe('LibrarianService', () => {
         mockLogger as any,
       );
 
-      expect((service as any).docsPaths).toEqual(['/path1', '/path2', '/path3']);
+      expect((service as any).docsPaths).toEqual([
+        '/path1',
+        '/path2',
+        '/path3',
+      ]);
     });
   });
 

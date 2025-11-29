@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LoggerService } from '../../common/logger/logger.service';
+import { PathsService } from '../../paths/paths.service';
 import * as chokidar from 'chokidar';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -21,33 +22,56 @@ export class LibrarianService implements OnModuleInit {
   constructor(
     private configService: ConfigService,
     private loggerService: LoggerService,
+    private pathsService: PathsService,
   ) {
-    // Get docs paths from environment variable - optional for basic functionality
-    const docsPathConfig = this.configService.get<string>('AKURI_DOCS_PATH');
-    if (docsPathConfig) {
-      // Support multiple paths separated by commas
-      this.docsPaths = docsPathConfig.split(',').map(path => path.trim()).filter(path => path.length > 0);
-    } else {
-      // Default to empty array if not configured
-      this.docsPaths = [];
-    }
-
     // Set logger context after validation
     this.loggerService.setContext?.('LibrarianService');
+  }
 
-    this.logger.log(`Documentos configurados en: ${this.docsPaths.join(', ')}`);
+  private async loadAllPaths() {
+    try {
+      // Load all paths from PathsService (includes env and dynamic active paths)
+      const allPaths = await this.pathsService.loadPaths();
+
+      // Filter only active paths and extract their paths
+      this.docsPaths = allPaths
+        .filter((path) => path.isActive)
+        .map((path) => path.path);
+
+      this.logger.log(
+        `Loaded ${this.docsPaths.length} active document paths: ${this.docsPaths.join(', ')}`,
+      );
+    } catch (error) {
+      this.loggerService.error('Error loading paths from PathsService', {
+        operation: 'load_paths_error',
+        error: (error as Error).message,
+      });
+      // Fallback to env paths only
+      const docsPathConfig = this.configService.get<string>('AKURI_DOCS_PATH');
+      if (docsPathConfig) {
+        this.docsPaths = docsPathConfig
+          .split(',')
+          .map((path) => path.trim())
+          .filter((path) => path.length > 0);
+      } else {
+        this.docsPaths = [];
+      }
+    }
   }
 
   async onModuleInit() {
-    this.loggerService.info('🚀 Iniciando sistema de búsqueda V3...', {
+    this.loggerService.info('🚀 Starting search system V3...', {
       operation: 'init',
     });
     this.initDB();
 
+    // Load all paths (env + dynamic active)
+    await this.loadAllPaths();
+
     // Only scan and watch if we have paths configured
     if (this.docsPaths.length > 0) {
       // Ejecutar scan en segundo plano sin bloquear la inicialización
-      this.initialScan().catch(err => {
+      this.initialScan().catch((err) => {
         this.loggerService.error('Error during initial scan', {
           operation: 'init_scan_error',
           error: err.message,
@@ -56,9 +80,12 @@ export class LibrarianService implements OnModuleInit {
 
       this.startWatcher();
     } else {
-      this.loggerService.info('No document paths configured, skipping scan and watcher setup', {
-        operation: 'init_skip',
-      });
+      this.loggerService.info(
+        'No document paths configured, skipping scan and watcher setup',
+        {
+          operation: 'init_skip',
+        },
+      );
     }
   }
 
@@ -74,16 +101,17 @@ export class LibrarianService implements OnModuleInit {
         source_type: 'string',
       },
     });
-    this.loggerService.info('🧠 DB Orama lista (Schema V2)', { operation: 'db_init' });
+    this.loggerService.info('🧠 Orama DB ready (Schema V2)', {
+      operation: 'db_init',
+    });
   }
 
-  // ... (initialScan and startWatcher remain similar, skipping for brevity in replacement if possible, but replace_file_content needs contiguous block. 
+  // ... (initialScan and startWatcher remain similar, skipping for brevity in replacement if possible, but replace_file_content needs contiguous block.
   // Since I need to change initDB (top) and indexFile (middle) and searchDocs (bottom), I should probably use multi_replace or separate calls.
   // I will use multi_replace for this.)
 
-
   private async initialScan() {
-    this.loggerService.info('📂 Escaneando documentos desde múltiples fuentes...', {
+    this.loggerService.info('📂 Scanning documents from multiple sources...', {
       operation: 'scan_start',
       sources: this.docsPaths.length,
     });
@@ -109,7 +137,7 @@ export class LibrarianService implements OnModuleInit {
     // Process all directories
     const allMds: string[] = [];
     for (const docsPath of this.docsPaths) {
-      this.loggerService.info(`🔍 Escaneando directorio: ${docsPath}`, {
+      this.loggerService.info(`🔍 Scanning directory: ${docsPath}`, {
         operation: 'scan_directory',
         directory: docsPath,
       });
@@ -121,17 +149,20 @@ export class LibrarianService implements OnModuleInit {
       await this.indexFile(file);
     }
     const totalDocs = count(this.db);
-    this.loggerService.info(`✅ Total indexado: ${totalDocs} docs desde ${this.docsPaths.length} fuentes`, {
-      operation: 'scan_complete',
-      totalDocs,
-      sources: this.docsPaths.length,
-    });
+    this.loggerService.info(
+      `✅ Total indexed: ${totalDocs} docs from ${this.docsPaths.length} sources`,
+      {
+        operation: 'scan_complete',
+        totalDocs,
+        sources: this.docsPaths.length,
+      },
+    );
   }
 
   private startWatcher() {
     // Create a watcher for each directory
     for (const docsPath of this.docsPaths) {
-      this.loggerService.info(`👀 Configurando watcher para: ${docsPath}`, {
+      this.loggerService.info(`👀 Setting up watcher for: ${docsPath}`, {
         operation: 'watcher_setup',
         directory: docsPath,
       });
@@ -161,12 +192,17 @@ export class LibrarianService implements OnModuleInit {
 
     try {
       // Find the base directory for this file
-      const baseDir = this.docsPaths.find(docsPath => filePath.startsWith(docsPath));
+      const baseDir = this.docsPaths.find((docsPath) =>
+        filePath.startsWith(docsPath),
+      );
       if (!baseDir) {
-        this.loggerService.warn(`File outside configured directories: ${filePath}`, {
-          operation: 'index_skip',
-          filePath,
-        });
+        this.loggerService.warn(
+          `File outside configured directories: ${filePath}`,
+          {
+            operation: 'index_skip',
+            filePath,
+          },
+        );
         return;
       }
 
@@ -183,8 +219,12 @@ export class LibrarianService implements OnModuleInit {
       }
       // -------------------------------------------------------------
 
-      const docData = data as { tags?: string[]; summary?: string; source_type?: string };
-      
+      const docData = data as {
+        tags?: string[];
+        summary?: string;
+        source_type?: string;
+      };
+
       // Determine source_type heuristic
       let sourceType = docData.source_type || 'general';
       if (filePath.includes('akuri-acp-documents')) sourceType = 'internal';
@@ -229,28 +269,38 @@ export class LibrarianService implements OnModuleInit {
     return this.docsPaths;
   }
 
-  async updatePaths(newPaths: string[]) {
-    // Validate paths
-    const validPaths = newPaths.filter(path => path.trim().length > 0);
-    if (validPaths.length === 0) {
-      throw new Error('Al menos una ruta válida es requerida');
+  async reloadPaths(silent: boolean = false) {
+    await this.loadAllPaths();
+    if (!silent) {
+      this.loggerService.info(
+        `Paths reloaded dynamically: ${this.docsPaths.join(', ')}`,
+        {
+          operation: 'dynamic_reload',
+        },
+      );
     }
-
-    // Stop current watchers
-    // Note: In a real implementation, you'd need to close watchers properly
-    // For simplicity, we'll just update the paths and reindex
-
-    this.docsPaths = validPaths;
-    this.loggerService.info(`Rutas actualizadas: ${this.docsPaths.join(', ')}`, {
-      operation: 'update_paths',
-    });
-
     // Reindex with new paths
     await this.reindex();
   }
 
+  async updatePaths(newPaths: string[]) {
+    // This method is deprecated - paths are now managed by PathsService
+    // Reload all paths from PathsService
+    await this.loadAllPaths();
+
+    this.loggerService.info(
+      `Paths reloaded from PathsService: ${this.docsPaths.join(', ')}`,
+      {
+        operation: 'reload_paths',
+      },
+    );
+
+    // Reindex with updated paths
+    await this.reindex();
+  }
+
   async reindex() {
-    this.loggerService.info('🔄 Reindexando documentos...', {
+    this.loggerService.info('🔄 Reindexing documents...', {
       operation: 'reindex_start',
     });
 
@@ -262,7 +312,7 @@ export class LibrarianService implements OnModuleInit {
     await this.initialScan();
 
     const totalDocs = count(this.db);
-    this.loggerService.info(`✅ Reindexación completada: ${totalDocs} documentos`, {
+    this.loggerService.info(`✅ Reindexing completed: ${totalDocs} documents`, {
       operation: 'reindex_complete',
       totalDocs,
     });
@@ -280,7 +330,7 @@ export class LibrarianService implements OnModuleInit {
 
       // --- MODO DIAGNÓSTICO ---
       // Si Kilo pregunta, le respondemos con el estado de la memoria
-      this.loggerService.info(`Query: "${query}" | Docs en RAM: ${totalDocs}`, {
+      this.loggerService.info(`Query: "${query}" | Docs in RAM: ${totalDocs}`, {
         operation: 'search_start',
         query,
         totalDocs,
@@ -298,7 +348,7 @@ export class LibrarianService implements OnModuleInit {
             path: 'SISTEMA_VACIO',
             score: 0,
             metadata: { status: 'error' },
-            snippet: `⚠️ ALERTA CRÍTICA: La base de datos en memoria tiene 0 documentos. Las rutas configuradas son: ${this.docsPaths.join(', ')}`,
+            snippet: `⚠️ CRITICAL ALERT: The in-memory database has 0 documents. Configured paths are: ${this.docsPaths.join(', ')}`,
           },
         ];
       }
@@ -325,7 +375,7 @@ export class LibrarianService implements OnModuleInit {
             path: 'SIN_RESULTADOS',
             score: 0,
             metadata: { info: 'debug' },
-            snippet: `La DB tiene ${totalDocs} docs, pero la búsqueda de "${query}" no produjo coincidencias.`,
+            snippet: `The DB has ${totalDocs} docs, but the search for "${query}" produced no matches.`,
           },
         ];
       }
@@ -334,7 +384,7 @@ export class LibrarianService implements OnModuleInit {
       const hits = result.hits.map((hit) => {
         let score = hit.score;
         const doc = hit.document as any;
-        
+
         // Apply boosts
         if (doc.source_type === 'project') score *= 2.0;
         if (doc.source_type === 'workspace') score *= 1.5;
@@ -377,7 +427,7 @@ export class LibrarianService implements OnModuleInit {
           path: 'ERROR_INTERNO',
           score: 0,
           metadata: { error: (e as Error).message },
-          snippet: 'Error ejecutando la búsqueda en Orama.',
+          snippet: 'Error executing search in Orama.',
         },
       ];
     }

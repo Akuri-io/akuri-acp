@@ -139,7 +139,10 @@ export class McpService implements OnModuleInit {
           const parsed = JSON.parse(variables);
           varsObj = BlueprintVariablesSchema.parse(parsed);
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Invalid JSON or variables schema';
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : 'Invalid JSON or variables schema';
           return {
             isError: true,
             content: [

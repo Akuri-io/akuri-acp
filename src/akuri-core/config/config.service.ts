@@ -26,8 +26,8 @@ export class AkuriConfigService {
   ) {}
 
   /**
-    * Get current document paths from environment
-    */
+   * Get current document paths from environment
+   */
   getDocumentPaths(): string[] {
     // Always include the internal documentation path
     const internalDocsPath = path.join(process.cwd(), 'akuri-acp-documents');
@@ -36,7 +36,10 @@ export class AkuriConfigService {
     // Add paths from environment variable
     const pathsConfig = this.configService.get<string>('AKURI_DOCS_PATH', '');
     if (pathsConfig.trim()) {
-      const envPaths = pathsConfig.split(',').map(p => p.trim()).filter(p => p.length > 0);
+      const envPaths = pathsConfig
+        .split(',')
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0);
       paths.push(...envPaths);
     }
 
@@ -44,15 +47,17 @@ export class AkuriConfigService {
   }
 
   /**
-    * Update document paths in environment file
-    */
+   * Update document paths in environment file
+   */
   async updateDocumentPaths(paths: string[]): Promise<void> {
     const envPath = path.join(process.cwd(), '.env');
     const envContent = fs.readFileSync(envPath, 'utf-8');
 
     // The internal docs path is always included, so filter it out when saving to .env
     const internalDocsPath = path.join(process.cwd(), 'akuri-acp-documents');
-    const externalPaths = paths.filter(p => p !== internalDocsPath && p.trim().length > 0);
+    const externalPaths = paths.filter(
+      (p) => p !== internalDocsPath && p.trim().length > 0,
+    );
 
     // Update or add AKURI_DOCS_PATH with only external paths
     const newPathsValue = externalPaths.join(',');
@@ -62,7 +67,7 @@ export class AkuriConfigService {
       // Replace existing line
       updatedContent = envContent.replace(
         /AKURI_DOCS_PATH=.*/,
-        `AKURI_DOCS_PATH=${newPathsValue}`
+        `AKURI_DOCS_PATH=${newPathsValue}`,
       );
     } else {
       // Add new line
@@ -75,7 +80,7 @@ export class AkuriConfigService {
       context: 'ConfigService',
       operation: 'update_paths',
       internalPath: internalDocsPath,
-      externalPaths: externalPaths
+      externalPaths: externalPaths,
     });
   }
 
@@ -95,26 +100,30 @@ export class AkuriConfigService {
    */
   async removeDocumentPath(pathToRemove: string): Promise<void> {
     const currentPaths = this.getDocumentPaths();
-    const filteredPaths = currentPaths.filter(p => p !== pathToRemove);
+    const filteredPaths = currentPaths.filter((p) => p !== pathToRemove);
     await this.updateDocumentPaths(filteredPaths);
   }
 
   /**
    * Validate if a path exists and is a directory
    */
-  validatePath(docPath: string): { exists: boolean; isDirectory: boolean; error?: string } {
+  validatePath(docPath: string): {
+    exists: boolean;
+    isDirectory: boolean;
+    error?: string;
+  } {
     try {
       const stats = fs.statSync(docPath);
       return {
         exists: true,
         isDirectory: stats.isDirectory(),
-        error: stats.isDirectory() ? undefined : 'Path is not a directory'
+        error: stats.isDirectory() ? undefined : 'Path is not a directory',
       };
     } catch (error) {
       return {
         exists: false,
         isDirectory: false,
-        error: `Path does not exist: ${error.message}`
+        error: `Path does not exist: ${error.message}`,
       };
     }
   }
@@ -143,7 +152,7 @@ export class AkuriConfigService {
       this.logger.warn(`Error counting documents in ${docPath}`, {
         context: 'ConfigService',
         operation: 'count_docs',
-        error: error.message
+        error: error.message,
       });
       return 0;
     }
@@ -155,11 +164,14 @@ export class AkuriConfigService {
   getAllowedExtensions(): string[] {
     const defaultExts = ['.md', '.txt', '.markdown', '.rst', '.adoc', '.pdf'];
     const extsConfig = this.configService.get<string>('AKURI_ALLOWED_EXTS', '');
-    
+
     if (extsConfig.trim()) {
-      return extsConfig.split(',').map(e => e.trim().toLowerCase()).filter(e => e.length > 0);
+      return extsConfig
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .filter((e) => e.length > 0);
     }
-    
+
     return defaultExts;
   }
 
@@ -182,16 +194,17 @@ export class AkuriConfigService {
 
     for (const docPath of paths) {
       const validation = this.validatePath(docPath);
-      const documentCount = validation.exists && validation.isDirectory
-        ? this.countDocumentsInPath(docPath)
-        : 0;
+      const documentCount =
+        validation.exists && validation.isDirectory
+          ? this.countDocumentsInPath(docPath)
+          : 0;
 
       pathDetails.push({
         path: docPath,
         exists: validation.exists,
         isDirectory: validation.isDirectory,
         documentCount,
-        lastIndexed: new Date() // TODO: Track actual indexing time
+        lastIndexed: new Date(), // TODO: Track actual indexing time
       });
 
       totalDocuments += documentCount;
@@ -200,18 +213,25 @@ export class AkuriConfigService {
     return {
       paths: pathDetails,
       totalDocuments,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
   }
 
   /**
    * Test a path to see if it's valid for document indexing
    */
-  testPath(docPath: string): { valid: boolean; message: string; documentCount?: number } {
+  testPath(docPath: string): {
+    valid: boolean;
+    message: string;
+    documentCount?: number;
+  } {
     const validation = this.validatePath(docPath);
 
     if (!validation.exists) {
-      return { valid: false, message: validation.error || 'Path does not exist' };
+      return {
+        valid: false,
+        message: validation.error || 'Path does not exist',
+      };
     }
 
     if (!validation.isDirectory) {
@@ -226,7 +246,7 @@ export class AkuriConfigService {
     return {
       valid: true,
       message: `Valid directory with ${documentCount} document(s)`,
-      documentCount
+      documentCount,
     };
   }
 }

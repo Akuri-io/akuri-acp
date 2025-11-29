@@ -28,20 +28,22 @@ export class HealthController {
       () => {
         try {
           const docsPaths = this.librarian.getDocsPaths();
-          const results = docsPaths.map(docsPath => {
+          const results = docsPaths.map((docsPath) => {
             const exists = fs.existsSync(docsPath);
             const isReadable = exists && fs.statSync(docsPath).isDirectory();
             return { path: docsPath, exists, isReadable };
           });
 
-          const allAccessible = results.every(r => r.exists && r.isReadable);
-          const inaccessiblePaths = results.filter(r => !r.exists || !r.isReadable);
+          const allAccessible = results.every((r) => r.exists && r.isReadable);
+          const inaccessiblePaths = results.filter(
+            (r) => !r.exists || !r.isReadable,
+          );
 
           if (!allAccessible) {
             return {
               filesystem: {
                 status: 'down',
-                message: `Some docs directories are not accessible: ${inaccessiblePaths.map(r => r.path).join(', ')}`,
+                message: `Some docs directories are not accessible: ${inaccessiblePaths.map((r) => r.path).join(', ')}`,
                 details: results,
               },
             };
@@ -145,7 +147,7 @@ export class HealthController {
 
     // Add additional metrics
     const docsPaths = this.librarian.getDocsPaths();
-    const docsPathsStatus = docsPaths.map(path => ({
+    const docsPathsStatus = docsPaths.map((path) => ({
       path,
       exists: fs.existsSync(path),
     }));

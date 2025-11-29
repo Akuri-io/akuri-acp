@@ -27,19 +27,25 @@ export function createLogger(configService: ConfigService) {
     configService.get<string>('LOG_LEVEL') || (isProduction ? 'info' : 'debug');
 
   // Detectar si estamos ejecutando como MCP server (sin puerto HTTP)
-  const isMcpMode = !configService.get<string>('PORT') || configService.get<string>('MCP_MODE') === 'true';
+  const isMcpMode =
+    !configService.get<string>('PORT') ||
+    configService.get<string>('MCP_MODE') === 'true';
 
   const format = winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     winston.format.errors({ stack: true }),
     winston.format.json(),
-    isMcpMode ? winston.format.uncolorize() : winston.format.colorize({ all: true }),
+    isMcpMode
+      ? winston.format.uncolorize()
+      : winston.format.colorize({ all: true }),
   );
 
   const consoleFormat = winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     winston.format.errors({ stack: true }),
-    isMcpMode ? winston.format.uncolorize() : winston.format.colorize({ all: true }),
+    isMcpMode
+      ? winston.format.uncolorize()
+      : winston.format.colorize({ all: true }),
     winston.format.printf(({ timestamp, level, message, context, ...meta }) => {
       const ctx = context ? `[${String(context)}]` : '';
       const metaStr = Object.keys(meta).length
@@ -57,7 +63,7 @@ export function createLogger(configService: ConfigService) {
     transports.push(
       new winston.transports.Console({
         format: consoleFormat,
-      })
+      }),
     );
   }
 
@@ -80,7 +86,7 @@ export function createLogger(configService: ConfigService) {
           winston.format.errors({ stack: true }),
           winston.format.json(),
         ),
-      })
+      }),
     );
   }
 

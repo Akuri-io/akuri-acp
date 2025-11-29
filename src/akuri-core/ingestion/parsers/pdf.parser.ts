@@ -10,11 +10,14 @@ export class PdfParser {
     try {
       const dataBuffer = fs.readFileSync(filePath);
       const data = await pdf(dataBuffer);
-      
+
       // Basic cleanup of extracted text
       return this.cleanText(data.text);
     } catch (error) {
-      this.logger.error(`Error parsing PDF ${filePath}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error parsing PDF ${filePath}: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }

@@ -14,10 +14,10 @@ export interface MarkdownOptions {
 export class MarkdownGenerator {
   generate(options: MarkdownOptions): string {
     const { content, originalPath, summary, tags } = options;
-    
+
     const filename = path.basename(originalPath);
     const extension = path.extname(originalPath).replace('.', '');
-    
+
     const frontmatter = {
       original_file: filename,
       source_format: extension,

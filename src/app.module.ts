@@ -11,6 +11,7 @@ import { AkuriCoreModule } from './akuri-core/akuri-core.module';
 import { AkuriConfigModule } from './akuri-core/config/config.module';
 import { McpModule } from './mcp/mcp.module';
 import { AdminModule } from './admin/admin.module';
+import { PathsModule } from './paths/paths.module';
 
 @Module({
   imports: [
@@ -35,8 +36,9 @@ import { AdminModule } from './admin/admin.module';
     // AkuriConfigModule,
     McpModule,
     AdminModule,
+    PathsModule,
   ],
-  // controllers: [AppController],
-  // providers: [AppService],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

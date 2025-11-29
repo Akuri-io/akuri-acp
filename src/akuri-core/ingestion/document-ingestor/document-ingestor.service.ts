@@ -28,12 +28,19 @@ export class DocumentIngestorService implements OnModuleInit {
       return;
     }
 
-    const paths = docsPathConfig.split(',').map(p => p.trim()).filter(p => p.length > 0);
-    
-    // Default allowed extensions if not configured
-    const allowedExts = this.configService.get<string>('AKURI_ALLOWED_EXTS', '.pdf').split(',');
+    const paths = docsPathConfig
+      .split(',')
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
 
-    this.logger.log(`Starting ingestion watcher on: ${paths.join(', ')} for extensions: ${allowedExts.join(', ')}`);
+    // Default allowed extensions if not configured
+    const allowedExts = this.configService
+      .get<string>('AKURI_ALLOWED_EXTS', '.pdf')
+      .split(',');
+
+    this.logger.log(
+      `Starting ingestion watcher on: ${paths.join(', ')} for extensions: ${allowedExts.join(', ')}`,
+    );
 
     this.watcher = chokidar.watch(paths, {
       ignored: /(^|[/\\])\../, // ignore dotfiles
@@ -42,13 +49,17 @@ export class DocumentIngestorService implements OnModuleInit {
       depth: 5,
     });
 
-    this.watcher.on('add', (filePath) => this.handleFile(filePath, allowedExts));
-    this.watcher.on('change', (filePath) => this.handleFile(filePath, allowedExts));
+    this.watcher.on('add', (filePath) =>
+      this.handleFile(filePath, allowedExts),
+    );
+    this.watcher.on('change', (filePath) =>
+      this.handleFile(filePath, allowedExts),
+    );
   }
 
   private async handleFile(filePath: string, allowedExts: string[]) {
     const ext = path.extname(filePath).toLowerCase();
-    
+
     // Skip if not allowed extension or if it's already a markdown file (we don't ingest MD files, Librarian reads them)
     if (!allowedExts.includes(ext) || ext === '.md') {
       return;
@@ -58,7 +69,7 @@ export class DocumentIngestorService implements OnModuleInit {
 
     try {
       let content = '';
-      
+
       if (ext === '.pdf') {
         content = await this.pdfParser.parse(filePath);
       } else {
@@ -76,11 +87,13 @@ export class DocumentIngestorService implements OnModuleInit {
       // Strategy: file.pdf -> file.pdf.md
       const mdPath = `${filePath}.md`;
       fs.writeFileSync(mdPath, mdContent);
-      
-      this.logger.log(`Generated shadow markdown: ${mdPath}`);
 
+      this.logger.log(`Generated shadow markdown: ${mdPath}`);
     } catch (error) {
-      this.logger.error(`Error ingesting file ${filePath}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error ingesting file ${filePath}: ${error.message}`,
+        error.stack,
+      );
     }
   }
 }

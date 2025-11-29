@@ -9,9 +9,9 @@ export class AdminController {
     res.sendFile(join(__dirname, '..', '..', 'public', 'index.html'));
   }
 
-  @Get('extensiones')
-  serveExtensiones(@Res() res: Response) {
-    res.sendFile(join(__dirname, '..', '..', 'public', 'extensiones.html'));
+  @Get('extensions')
+  serveExtensions(@Res() res: Response) {
+    res.sendFile(join(__dirname, '..', '..', 'public', 'extensions.html'));
   }
 
   @Get('install')
@@ -19,8 +19,8 @@ export class AdminController {
     res.sendFile(join(__dirname, '..', '..', 'public', 'install.html'));
   }
 
-  @Get('rutas')
-  serveRutas(@Res() res: Response) {
-    res.sendFile(join(__dirname, '..', '..', 'public', 'rutas.html'));
+  @Get('paths')
+  servePaths(@Res() res: Response) {
+    res.sendFile(join(__dirname, '..', '..', 'public', 'paths.html'));
   }
 }
