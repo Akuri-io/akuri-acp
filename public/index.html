@@ -32,11 +32,15 @@
           🔧 Extensions
         </a>
         <a href="/admin" class="px-4 py-2 font-medium border-b-2 border-primary text-primary transition-colors">
-          📊 Métricas
+          📊 Metrics
+        </a>
+        <a href="/admin/config"
+          class="px-4 py-2 font-medium border-b-2 border-transparent text-gray-400 hover:border-primary hover:text-gray-200 transition-colors">
+          ⚙️ Configuration
         </a>
         <a href="/admin/install"
           class="px-4 py-2 font-medium border-b-2 border-transparent text-gray-400 hover:border-primary hover:text-gray-200 transition-colors">
-          📥 Instalación
+          📥 Installation
         </a>
       </nav>
     </div>
@@ -79,8 +83,42 @@
   <script type="module">
     import { ui } from '/admin/js/ui.js';
 
-    // Placeholder for metrics logic
-    console.log('Dashboard loaded');
+    // Load metrics data
+    async function loadMetrics() {
+      try {
+        // Fetch status and metrics in parallel
+        const [statusRes, metricsRes] = await Promise.all([
+          fetch('/config/status'),
+          fetch('/config/metrics')
+        ]);
+
+        const [status, metrics] = await Promise.all([
+          statusRes.json(),
+          metricsRes.json()
+        ]);
+
+        // Update the UI with real data
+        document.querySelector('.text-primary').textContent = status.documentCount.toLocaleString();
+        document.querySelector('.text-success').textContent = metrics.searchCount.toLocaleString();
+        document.querySelector('.text-gray-100').textContent = `${Math.round(metrics.averageSearchTime)}ms`;
+
+        // Update last indexing time
+        const lastIndexingElement = document.querySelectorAll('.font-medium.text-gray-300')[3];
+        if (status.lastIndexed) {
+          lastIndexingElement.textContent = new Date(status.lastIndexed).toLocaleString();
+        } else {
+          lastIndexingElement.textContent = 'Never';
+        }
+
+        console.log('Metrics loaded successfully');
+      } catch (error) {
+        console.error('Error loading metrics:', error);
+        ui.showToast('Error loading metrics', 'error');
+      }
+    }
+
+    // Load metrics on page load
+    document.addEventListener('DOMContentLoaded', loadMetrics);
   </script>
 </body>
 

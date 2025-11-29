@@ -5,7 +5,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health.controller';
-import { ConfigController } from './config.controller';
+import { ConfigController } from './akuri-core/config/config.controller';
 import { LoggerModule } from './common/logger/logger.module';
 import { AkuriCoreModule } from './akuri-core/akuri-core.module';
 import { AkuriConfigModule } from './akuri-core/config/config.module';
@@ -18,7 +18,7 @@ import { PathsModule } from './paths/paths.module';
     ConfigModule.forRoot({
       isGlobal: true, // Make config available throughout the app
     }),
-    // TerminusModule,
+    TerminusModule,
     // ThrottlerModule.forRoot([
     //   {
     //     name: 'short',
@@ -33,12 +33,12 @@ import { PathsModule } from './paths/paths.module';
     // ]),
     LoggerModule,
     AkuriCoreModule,
-    // AkuriConfigModule,
+    AkuriConfigModule,
     McpModule,
     AdminModule,
     PathsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController, ConfigController],
   providers: [AppService],
 })
 export class AppModule {}

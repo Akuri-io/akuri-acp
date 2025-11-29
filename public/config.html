@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Akuri ACP - Configuration</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link rel="stylesheet" href="/admin/css/styles.css">
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+  <!-- Header -->
+  <header class="bg-gray-800 border-b border-gray-700">
+    <div class="container mx-auto px-4 py-4">
+      <h1 class="text-2xl font-bold text-primary">Akuri ACP</h1>
+      <p class="text-sm text-gray-400">Configuration Dashboard</p>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container mx-auto px-4 py-6">
+    <!-- Navigation -->
+    <div class="border-b border-gray-700 mb-6">
+      <nav class="flex space-x-4">
+        <a href="/admin/paths"
+          class="px-4 py-2 font-medium border-b-2 border-transparent text-gray-400 hover:border-primary hover:text-gray-200 transition-colors">
+          📁 Paths
+        </a>
+        <a href="/admin/extensions"
+          class="px-4 py-2 font-medium border-b-2 border-transparent text-gray-400 hover:border-primary hover:text-gray-200 transition-colors">
+          🔧 Extensions
+        </a>
+        <a href="/admin/config" class="px-4 py-2 font-medium border-b-2 border-primary text-primary transition-colors">
+          ⚙️ Configuration
+        </a>
+        <a href="/admin/install"
+          class="px-4 py-2 font-medium border-b-2 border-transparent text-gray-400 hover:border-primary hover:text-gray-200 transition-colors">
+          📥 Installation
+        </a>
+      </nav>
+    </div>
+
+    <!-- Content -->
+    <div>
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">System Configuration</h2>
+        <button id="refresh-btn"
+          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors">
+          🔄 Refresh
+        </button>
+      </div>
+
+      <!-- System Status -->
+      <div class="bg-gray-800 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-medium mb-4 flex items-center">
+          <span class="mr-2">📊</span> System Status
+        </h3>
+        <div id="system-status" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="text-center">
+            <div class="text-gray-400 text-sm mb-1">Status</div>
+            <div id="status-indicator" class="text-lg font-semibold text-gray-100">-</div>
+          </div>
+          <div class="text-center">
+            <div class="text-gray-400 text-sm mb-1">Total Documents</div>
+            <div id="total-docs" class="text-lg font-semibold text-primary">-</div>
+          </div>
+          <div class="text-center">
+            <div class="text-gray-400 text-sm mb-1">Active Paths</div>
+            <div id="active-paths" class="text-lg font-semibold text-success">-</div>
+          </div>
+          <div class="text-center">
+            <div class="text-gray-400 text-sm mb-1">Last Updated</div>
+            <div id="last-updated" class="text-sm font-semibold text-gray-300">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document Paths -->
+      <div class="bg-gray-800 rounded-lg p-6 mb-6">
+        <h3 class="text-lg font-medium mb-4 flex items-center">
+          <span class="mr-2">📁</span> Document Paths
+        </h3>
+        <div id="paths-container" class="space-y-3">
+          <div class="text-gray-400 text-center py-4">Loading paths...</div>
+        </div>
+      </div>
+
+      <!-- Configuration Details -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Extensions -->
+        <div class="bg-gray-800 rounded-lg p-6">
+          <h3 class="text-lg font-medium mb-4 flex items-center">
+            <span class="mr-2">🔧</span> Allowed Extensions
+          </h3>
+          <div id="extensions-list" class="flex flex-wrap gap-2">
+            <div class="text-gray-400">Loading...</div>
+          </div>
+        </div>
+
+        <!-- Installation Config -->
+        <div class="bg-gray-800 rounded-lg p-6">
+          <h3 class="text-lg font-medium mb-4 flex items-center">
+            <span class="mr-2">📥</span> Installation Config
+          </h3>
+          <div id="install-config" class="space-y-2 text-sm">
+            <div class="text-gray-400">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Metrics -->
+      <div class="bg-gray-800 rounded-lg p-6">
+        <h3 class="text-lg font-medium mb-4 flex items-center">
+          <span class="mr-2">📈</span> Search Metrics
+        </h3>
+        <div id="metrics-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="text-center">
+            <div class="text-gray-400 text-sm mb-1">Total Searches</div>
+            <div id="search-count" class="text-lg font-semibold text-primary">-</div>
+          </div>
+          <div class="text-center">
+            <div class="text-gray-400 text-sm mb-1">Average Time</div>
+            <div id="avg-time" class="text-lg font-semibold text-success">-</div>
+          </div>
+          <div class="text-center">
+            <div class="text-gray-400 text-sm mb-1">Last Search</div>
+            <div id="last-search" class="text-sm font-semibold text-gray-300">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
+
+  <script type="module">
+    // Configuration data
+    let configData = {};
+
+    // Load all configuration data
+    async function loadConfiguration() {
+      try {
+        showToast('Loading configuration...', 'info');
+
+        // Load all data in parallel
+        const [statusRes, pathsRes, extensionsRes, installRes, metricsRes] = await Promise.all([
+          fetch('/config/status'),
+          fetch('/config/paths'),
+          fetch('/config/extensions'),
+          fetch('/config/install-config'),
+          fetch('/config/metrics')
+        ]);
+
+        const [status, paths, extensions, install, metrics] = await Promise.all([
+          statusRes.json(),
+          pathsRes.json(),
+          extensionsRes.json(),
+          installRes.json(),
+          metricsRes.json()
+        ]);
+
+        configData = { status, paths, extensions, install, metrics };
+        updateUI();
+        showToast('Configuration loaded successfully', 'success');
+
+      } catch (error) {
+        console.error('Error loading configuration:', error);
+        showToast('Error loading configuration', 'error');
+      }
+    }
+
+    // Update UI with loaded data
+    function updateUI() {
+      // System Status
+      const status = configData.status;
+      document.getElementById('status-indicator').textContent = status.isInitialized ? '✅ Active' : '❌ Inactive';
+      document.getElementById('total-docs').textContent = status.documentCount.toLocaleString();
+      document.getElementById('active-paths').textContent = status.paths.length;
+      document.getElementById('last-updated').textContent = new Date(status.lastIndexed).toLocaleString();
+
+      // Document Paths
+      const pathsContainer = document.getElementById('paths-container');
+      pathsContainer.innerHTML = '';
+
+      if (configData.paths.paths.length === 0) {
+        pathsContainer.innerHTML = '<div class="text-gray-400 text-center py-4">No paths configured</div>';
+      } else {
+        configData.paths.paths.forEach(path => {
+          const pathElement = document.createElement('div');
+          pathElement.className = 'bg-gray-700 rounded-lg p-4';
+          pathElement.innerHTML = `
+            <div class="flex justify-between items-start mb-2">
+              <div class="font-medium text-gray-100 truncate flex-1 mr-4" title="${path.path}">
+                ${path.path.split('/').pop() || path.path}
+              </div>
+              <div class="flex items-center space-x-2">
+                ${path.exists ? '<span class="text-green-400">✅</span>' : '<span class="text-red-400">❌</span>'}
+                ${path.isDirectory ? '<span class="text-blue-400">📁</span>' : '<span class="text-gray-400">📄</span>'}
+              </div>
+            </div>
+            <div class="text-sm text-gray-400">
+              <span class="font-medium text-primary">${path.documentCount.toLocaleString()}</span> documents
+              <span class="mx-2">•</span>
+              <span class="${path.exists ? 'text-green-400' : 'text-red-400'}">
+                ${path.exists ? 'Exists' : 'Not found'}
+              </span>
+            </div>
+            <div class="text-xs text-gray-500 mt-1 font-mono break-all">
+              ${path.path}
+            </div>
+          `;
+          pathsContainer.appendChild(pathElement);
+        });
+      }
+
+      // Extensions
+      const extensionsList = document.getElementById('extensions-list');
+      extensionsList.innerHTML = '';
+
+      if (configData.extensions.extensions.length === 0) {
+        extensionsList.innerHTML = '<div class="text-gray-400">No extensions configured</div>';
+      } else {
+        configData.extensions.extensions.forEach(ext => {
+          const extElement = document.createElement('span');
+          extElement.className = 'px-2 py-1 bg-gray-700 text-gray-300 rounded text-sm font-mono';
+          extElement.textContent = ext;
+          extensionsList.appendChild(extElement);
+        });
+      }
+
+      // Installation Config
+      const installConfig = document.getElementById('install-config');
+      const install = configData.install;
+      installConfig.innerHTML = `
+        <div><strong>Port:</strong> <span class="text-primary">${install.port}</span></div>
+        <div><strong>Executable:</strong> <span class="text-gray-300 font-mono text-xs break-all">${install.localExecutablePath}</span></div>
+        <div><strong>SSE URL:</strong> <span class="text-blue-400">${install.remoteSseUrl}</span></div>
+        <div><strong>Tools:</strong> <span class="text-green-400">${install.tools.length}</span> available</div>
+        <div><strong>Updated:</strong> <span class="text-gray-400">${new Date(install.lastUpdated).toLocaleString()}</span></div>
+      `;
+
+      // Search Metrics
+      const metrics = configData.metrics;
+      document.getElementById('search-count').textContent = metrics.searchCount.toLocaleString();
+      document.getElementById('avg-time').textContent = `${Math.round(metrics.averageSearchTime)}ms`;
+      document.getElementById('last-search').textContent = metrics.lastSearchTime > 0
+        ? new Date(metrics.lastSearchTime).toLocaleString()
+        : 'Never';
+    }
+
+    // Toast notification system
+    function showToast(message, type = 'info') {
+      const toastContainer = document.getElementById('toast-container');
+
+      const toast = document.createElement('div');
+      toast.className = `px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg transform transition-all duration-300 translate-x-full`;
+
+      switch (type) {
+        case 'success':
+          toast.classList.add('bg-green-600');
+          break;
+        case 'error':
+          toast.classList.add('bg-red-600');
+          break;
+        case 'warning':
+          toast.classList.add('bg-yellow-600');
+          break;
+        default:
+          toast.classList.add('bg-blue-600');
+      }
+
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+
+      // Animate in
+      setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+      }, 100);
+
+      // Remove after 3 seconds
+      setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+          toastContainer.removeChild(toast);
+        }, 300);
+      }, 3000);
+    }
+
+    // Event listeners
+    document.getElementById('refresh-btn').addEventListener('click', loadConfiguration);
+
+    // Auto-refresh every 30 seconds
+    setInterval(loadConfiguration, 30000);
+
+    // Initial load
+    loadConfiguration();
+  </script>
+</body>
+
+</html>

@@ -7,5 +7,14 @@
     "isActive": true,
     "createdAt": "2025-11-29T10:11:12.242Z",
     "updatedAt": "2025-11-29T10:11:12.242Z"
+  },
+  {
+    "id": "002855e6-27fd-4a2e-aecc-b9bd146cf6ab",
+    "name": "kimi",
+    "path": "/mnt/0e67f549-8f2b-4fee-92ea-605bc0fd16ea/AVATAR/INVESNETWORK/03-REPOS/INVESNETWORK-WORKSPACE/kimi-v1",
+    "description": "documentos mixtos de kimi",
+    "isActive": true,
+    "createdAt": "2025-11-29T10:43:34.004Z",
+    "updatedAt": "2025-11-29T10:43:34.004Z"
   }
 ]

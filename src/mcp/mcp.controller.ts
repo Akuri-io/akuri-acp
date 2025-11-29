@@ -19,7 +19,7 @@ export class McpController {
     const transport = new SSEServerTransport('/mcp/messages', res);
 
     // Conectar al servidor MCP principal
-    // await this.mcpService.connectTransport(transport);
+    await this.mcpService.connectTransport(transport);
 
     // Cuando el transporte se cierre (cliente desconectado), limpiar
     transport.onclose = () => {

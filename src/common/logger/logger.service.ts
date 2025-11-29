@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { logger } from '../../config/logger.config';
+import { logger } from './logger.config';
 import * as winston from 'winston';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class LoggerService {
         transports: [new winston.transports.Console()],
       });
       // Assign to the exported logger
-      require('../../config/logger.config').logger = basicLogger;
+      require('./logger.config').logger = basicLogger;
     }
   }
 

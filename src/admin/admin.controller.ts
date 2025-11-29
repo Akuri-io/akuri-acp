@@ -23,4 +23,9 @@ export class AdminController {
   servePaths(@Res() res: Response) {
     res.sendFile(join(__dirname, '..', '..', 'public', 'paths.html'));
   }
+
+  @Get('config')
+  serveConfig(@Res() res: Response) {
+    res.sendFile(join(__dirname, '..', '..', 'public', 'config.html'));
+  }
 }
