@@ -107,9 +107,11 @@ Endpoints para gestionar rutas de documentación dinámicas.
     // Enable CORS for web interface
     app.enableCors();
 
-    // Always start HTTP server for admin interface
-    await app.listen(port);
-    console.error(`🚀 HTTP Server running on http://localhost:${port}`);
+    // Start HTTP server only if not in MCP mode
+    if (!isMcpMode) {
+      await app.listen(port);
+      console.error(`🚀 HTTP Server running on http://localhost:${port}`);
+    }
 
     // MCP mode: Initialize MCP server alongside HTTP
     if (isMcpMode) {

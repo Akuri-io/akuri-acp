@@ -6,7 +6,7 @@ import { McpController } from './mcp.controller';
 
 @Module({
   imports: [AkuriCoreModule],
-  // controllers: [McpController],
+  controllers: [McpController],
   providers: [McpService],
   exports: [McpService],
 })

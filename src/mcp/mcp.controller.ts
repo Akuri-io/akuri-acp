@@ -98,7 +98,7 @@ export class McpController {
       this.transports.delete(sessionId);
     };
 
-    // await this.mcpService.connectTransport(transport);
+    await this.mcpService.connectTransport(transport);
     await transport.start();
   }
 }

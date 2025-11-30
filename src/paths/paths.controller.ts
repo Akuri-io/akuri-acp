@@ -25,6 +25,8 @@ import {
   PathResponse,
   DeleteResponse,
   ValidationResponse,
+  SearchDocsDto,
+  SearchResponseDto,
 } from './dto';
 
 @ApiTags('Paths Management')
@@ -252,13 +254,16 @@ export class PathsController {
     @Body() body: { path: string },
   ): Promise<ValidationResponse> {
     try {
-      const isValid = await this.pathsService.validatePath(body.path);
+      const result = await this.pathsService.validatePath(body.path);
+      const message = result.valid
+        ? `Path is valid and accessible (Read: ${result.permissions.canRead}, Write: ${result.permissions.canWrite}, Execute: ${result.permissions.canExecute})`
+        : 'Path is not valid or accessible';
+
       return {
         success: true,
-        valid: isValid,
-        message: isValid
-          ? 'Path is valid and accessible'
-          : 'Path is not valid or accessible',
+        valid: result.valid,
+        permissions: result.permissions,
+        message,
         timestamp: new Date().toISOString(),
       };
     } catch {
@@ -268,6 +273,42 @@ export class PathsController {
           error: {
             code: 'INTERNAL_ERROR',
             message: 'Failed to validate path',
+          },
+          timestamp: new Date().toISOString(),
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('search')
+  @ApiOperation({ summary: 'Search documents' })
+  @ApiBody({ type: SearchDocsDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results',
+    type: SearchResponseDto,
+  })
+  async searchDocs(@Body() dto: SearchDocsDto): Promise<SearchResponseDto> {
+    try {
+      const results = await this.librarianService.searchDocs(
+        dto.query,
+        dto.limit,
+      );
+      return {
+        success: true,
+        data: results,
+        message: `Found ${results.length} documents matching "${dto.query}"`,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new HttpException(
+        {
+          success: false,
+          error: {
+            code: 'SEARCH_ERROR',
+            message,
           },
           timestamp: new Date().toISOString(),
         },

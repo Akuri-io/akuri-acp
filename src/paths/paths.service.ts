@@ -169,12 +169,62 @@ export class PathsService implements IPathsService {
     this.logger.log(`Deleted path with id: ${id}`);
   }
 
-  async validatePath(path: string): Promise<boolean> {
+  async validatePath(
+    path: string,
+  ): Promise<{
+    valid: boolean;
+    permissions: {
+      canRead: boolean;
+      canWrite: boolean;
+      canExecute: boolean;
+      permissions: string;
+    };
+  }> {
     try {
-      await fs.access(path);
-      return true;
+      // Check read permission
+      await fs.access(path, fs.constants.R_OK);
+      const canRead = true;
+
+      // Check write permission
+      let canWrite = false;
+      try {
+        await fs.access(path, fs.constants.W_OK);
+        canWrite = true;
+      } catch {}
+
+      // Check execute permission
+      let canExecute = false;
+      try {
+        await fs.access(path, fs.constants.X_OK);
+        canExecute = true;
+      } catch {}
+
+      // Get detailed permissions using stat
+      let permissions = 'unknown';
+      try {
+        const stats = await fs.stat(path);
+        permissions = (stats.mode & parseInt('777', 8)).toString(8);
+      } catch {}
+
+      return {
+        valid: true,
+        permissions: {
+          canRead,
+          canWrite,
+          canExecute,
+          permissions,
+        },
+      };
     } catch {
-      return false;
+      return {
+        valid: false,
+        permissions: {
+          canRead: false,
+          canWrite: false,
+          canExecute: false,
+          permissions: 'no-access',
+        },
+      };
     }
   }
 }

@@ -8,5 +8,15 @@ export interface IPathsService {
   createPath(dto: CreatePathDto): Promise<PathEntity>;
   updatePath(id: string, dto: UpdatePathDto): Promise<PathEntity>;
   deletePath(id: string): Promise<void>;
-  validatePath(path: string): Promise<boolean>;
+  validatePath(
+    path: string,
+  ): Promise<{
+    valid: boolean;
+    permissions: {
+      canRead: boolean;
+      canWrite: boolean;
+      canExecute: boolean;
+      permissions: string;
+    };
+  }>;
 }

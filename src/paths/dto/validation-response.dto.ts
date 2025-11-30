@@ -1,5 +1,35 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+export class PermissionDetails {
+  @ApiProperty({
+    description: 'Indicates if the path can be read',
+    example: true,
+    type: 'boolean',
+  })
+  canRead: boolean;
+
+  @ApiProperty({
+    description: 'Indicates if the path can be written to',
+    example: false,
+    type: 'boolean',
+  })
+  canWrite: boolean;
+
+  @ApiProperty({
+    description: 'Indicates if the path can be executed',
+    example: false,
+    type: 'boolean',
+  })
+  canExecute: boolean;
+
+  @ApiProperty({
+    description: 'Detailed permission information',
+    example: 'drwxr-xr-x',
+    type: 'string',
+  })
+  permissions: string;
+}
+
 export class ValidationResponse {
   @ApiProperty({
     description: 'Indicates if the operation was successful',
@@ -14,6 +44,12 @@ export class ValidationResponse {
     type: 'boolean',
   })
   valid: boolean;
+
+  @ApiProperty({
+    description: 'Detailed permission information',
+    type: PermissionDetails,
+  })
+  permissions: PermissionDetails;
 
   @ApiProperty({
     description: 'Descriptive message about the validation result',
