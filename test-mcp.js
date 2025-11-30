@@ -2,7 +2,8 @@ const { spawn } = require('child_process');
 
 const server = spawn('node', ['dist/main.js'], {
   cwd: __dirname,
-  stdio: ['pipe', 'pipe', 'inherit']
+  stdio: ['pipe', 'pipe', 'inherit'],
+  env: { ...process.env, MCP_MODE: 'true' }
 });
 
 let messageId = 1;

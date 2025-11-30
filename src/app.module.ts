@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health.controller';
@@ -12,6 +13,7 @@ import { AkuriConfigModule } from './akuri-core/config/config.module';
 import { McpModule } from './mcp/mcp.module';
 import { AdminModule } from './admin/admin.module';
 import { PathsModule } from './paths/paths.module';
+import { ResponseInterceptor } from './common/interceptors';
 
 @Module({
   imports: [
@@ -39,6 +41,12 @@ import { PathsModule } from './paths/paths.module';
     PathsModule,
   ],
   controllers: [AppController, HealthController, ConfigController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
+    },
+  ],
 })
 export class AppModule {}

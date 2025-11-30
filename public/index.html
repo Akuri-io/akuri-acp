@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Akuri ACP - Dashboard</title>
   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-  <link rel="stylesheet" href="/admin/css/styles.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 
 <body class="bg-gray-900 text-gray-100 min-h-screen">
@@ -65,7 +66,7 @@
         </div>
         <div class="bg-gray-800 rounded-lg p-6">
           <div class="text-gray-400 text-sm mb-2">Last Indexing</div>
-          <div class="text-sm font-medium text-gray-300">-</div>
+          <div id="last-indexing" class="text-sm font-medium text-gray-300">-</div>
         </div>
       </div>
 
@@ -81,7 +82,7 @@
   <div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
 
   <script type="module">
-    import { ui } from '/admin/js/ui.js';
+    import { ui } from '/js/ui.js';
 
     // Load metrics data
     async function loadMetrics() {
@@ -98,12 +99,12 @@
         ]);
 
         // Update the UI with real data
-        document.querySelector('.text-primary').textContent = status.documentCount.toLocaleString();
+        document.querySelectorAll('.text-primary')[1].textContent = status.documentCount.toLocaleString();
         document.querySelector('.text-success').textContent = metrics.searchCount.toLocaleString();
         document.querySelector('.text-gray-100').textContent = `${Math.round(metrics.averageSearchTime)}ms`;
 
         // Update last indexing time
-        const lastIndexingElement = document.querySelectorAll('.font-medium.text-gray-300')[3];
+        const lastIndexingElement = document.getElementById('last-indexing');
         if (status.lastIndexed) {
           lastIndexingElement.textContent = new Date(status.lastIndexed).toLocaleString();
         } else {

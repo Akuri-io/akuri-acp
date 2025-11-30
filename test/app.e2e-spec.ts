@@ -20,6 +20,16 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
-      .expect('Hello World!');
+      .expect((res) => {
+        expect(res.body).toHaveProperty('success', true);
+        expect(res.body).toHaveProperty('data');
+        expect(res.body.data).toHaveProperty('version');
+        expect(res.body.data).toHaveProperty('status');
+        expect(res.body.data).toHaveProperty('uptime');
+        expect(res.body.data).toHaveProperty('memory');
+        expect(res.body.data).toHaveProperty('endpoints');
+        expect(res.body).toHaveProperty('message');
+        expect(res.body).toHaveProperty('timestamp');
+      });
   });
 });

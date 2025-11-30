@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Akuri ACP - Paths</title>
   <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-  <link rel="stylesheet" href="/admin/css/styles.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
 </head>
 
 <body class="bg-gray-900 text-gray-100 min-h-screen">
@@ -119,8 +120,8 @@
   <div id="toast-container" class="fixed bottom-4 right-4 z-50"></div>
 
   <script type="module">
-    import { api } from '/admin/js/api.js';
-    import { ui } from '/admin/js/ui.js';
+    import { api } from '/js/api.js';
+    import { ui } from '/js/ui.js';
 
     let pathValidationResult = null;
 
@@ -296,9 +297,9 @@
       try {
         const result = await api.reindexAll();
         if (result.success) {
-          ui.showToast(`Reindexación completada: ${result.totalDocs} documentos`, 'success');
+          ui.showToast(`Reindexing completed: ${result.totalDocs} documents`, 'success');
         } else {
-          ui.showToast('Error en reindexación', 'error');
+          ui.showToast('Error in reindexing', 'error');
         }
       } catch (error) {
         ui.showToast('Error: ' + error.message, 'error');

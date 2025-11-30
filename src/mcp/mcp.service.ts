@@ -33,6 +33,7 @@ export class McpService implements OnModuleInit {
     private consistency: ConsistencyService,
     private configService: ConfigService,
   ) {
+    console.error('🔌 MCP Service constructor called');
     this.server = new McpServer({
       name: 'Akuri Context Protocol',
       version: '1.0.0',
@@ -40,14 +41,29 @@ export class McpService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    this.registerTools();
+    try {
+      console.error('🔌 MCP onModuleInit called');
+      this.registerTools();
 
-    // Conectar el transporte STDIO solo si estamos en modo MCP
-    const isMcpMode = this.configService.get<string>('MCP_MODE') === 'true';
+      // Conectar el transporte STDIO solo si estamos en modo MCP
+      const isMcpMode = this.configService.get<string>('MCP_MODE') === 'true';
+      console.error(
+        '🔌 MCP_MODE value:',
+        this.configService.get<string>('MCP_MODE'),
+        'isMcpMode:',
+        isMcpMode,
+      );
 
-    if (isMcpMode) {
-      const transport = new StdioServerTransport();
-      await this.server.connect(transport);
+      if (isMcpMode) {
+        console.error('🔌 Connecting MCP STDIO transport...');
+        const transport = new StdioServerTransport();
+        await this.server.connect(transport);
+        console.error('🔌 MCP STDIO transport connected successfully');
+      } else {
+        console.error('🔌 MCP mode not enabled, skipping STDIO transport');
+      }
+    } catch (error) {
+      console.error('🔌 Error in MCP onModuleInit:', error);
     }
   }
 

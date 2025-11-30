@@ -85,12 +85,13 @@ To connect this server with **Cursor**, **Windsurf**, or **Kilo Code**, you must
 
 ## 🧰 Available Tools (MCP Tools)
 
-The server exposes the following tools to the AI Agent:
+The server exposes the following tools to the AI Agent. **Note:** Document search functionality is only available through MCP tools, not REST endpoints.
 
 ### `akuri_search_docs`
 Retrieves information from the local knowledge base.
 - **Params:** `query` (string), `limit` (number).
 - **Usage:** "Search for how to implement Tailwind v4 in Angular".
+- **Important:** This is the only way to search documents. REST endpoint `/paths/search` has been removed to avoid duplication.
 
 ### `akuri_check_workflow`
 Validates if the user has methodological permission to start a phase.
@@ -105,6 +106,40 @@ Generates a structured prompt based on a master template.
 
 ---
 
+## 🌐 REST API Endpoints
+
+In addition to MCP tools, the server provides REST API endpoints for system monitoring and administration.
+
+### System Information
+- **`GET /`** - Returns comprehensive system information including version, uptime, memory usage, and available endpoints.
+
+### Admin API (`/api/admin/*`)
+- **`GET /api/admin/stats`** - System statistics (documents indexed, memory usage, uptime).
+- **`GET /api/admin/extensions`** - List of available MCP extensions.
+- **`GET /api/admin/config`** - Current system configuration.
+- **`POST /api/admin/config`** - Update system configuration.
+
+### Legacy Admin Interface
+- **`GET /admin`** - HTML dashboard (maintained for backward compatibility).
+- **`GET /admin/extensions`** - HTML extensions page.
+- **`GET /admin/install`** - HTML installation page.
+- **`GET /admin/paths`** - HTML paths management page.
+
+### Health & Monitoring
+- **`GET /health`** - Basic health check.
+- **`GET /health/detailed`** - Detailed health information.
+
+### Paths Management
+- **`GET /paths`** - List configured document paths.
+- **`POST /paths`** - Add new document path.
+- **`PATCH /paths/:id`** - Update document path.
+- **`DELETE /paths/:id`** - Remove document path.
+- **`POST /paths/validate`** - Validate document path configuration.
+
+**Response Format:** All REST endpoints return standardized JSON responses with `success`, `data`, `message`, and `timestamp` fields.
+
+---
+
 ## 📂 Project Structure
 
 ```text
@@ -112,16 +147,81 @@ src/
 ├── akuri-core/                 # Business Logic
 │   ├── librarian/              # Indexing & Search (Orama)
 │   ├── workflow/               # Dependency Rules Engine
-│   └── consistency/            # Blueprints & Templates Engine
+│   ├── consistency/            # Blueprints & Templates Engine
+│   ├── ingestion/              # Document Processing Pipeline
+│   │   ├── document-ingestor/  # File watchers & parsers
+│   │   ├── generators/         # Markdown generation
+│   │   └── parsers/            # PDF & text extraction
+│   ├── config/                 # Configuration management
+│   └── metadata/               # Schema definitions
 ├── mcp/                        # MCP Transport Layer
-│   └── mcp.service.ts          # Tool Definitions
-├── app.module.ts
+│   ├── mcp.service.ts          # Tool definitions & server
+│   └── mcp.controller.ts       # SSE endpoints (simplified)
+├── admin/                      # Administration interfaces
+│   ├── admin.controller.ts     # HTML serving (legacy)
+│   └── admin-api.controller.ts # REST API endpoints (new)
+├── paths/                      # Document paths management
+│   ├── paths.controller.ts     # CRUD operations
+│   ├── paths.service.ts        # Business logic
+│   └── dto/                    # Data transfer objects
+├── common/                     # Shared utilities
+│   ├── interceptors/           # Response standardization
+│   ├── dtos/                   # Base response DTOs
+│   ├── logger/                 # Winston logging
+│   └── validation/             # Input validation schemas
+├── app.controller.ts           # Root endpoint with system info
+├── app.service.ts              # System information service
+├── health.controller.ts        # Health checks
+├── app.module.ts               # Main application module
 └── main.ts                     # Entry point (Stdio Transport)
 ```
 
 ---
 
-## 🧠 Akuri Philosophy
+## 🧪 Testing
+
+The project includes comprehensive test suites:
+
+```bash
+# Run all tests
+npm test
+
+# Run end-to-end tests
+npm run test:e2e
+
+# Run with coverage
+npm run test:cov
+```
+
+**Test Coverage:**
+- **Unit Tests:** Core business logic (services, utilities)
+- **E2E Tests:** Complete API workflows and integrations
+- **MCP Integration Tests:** Tool functionality and protocol compliance
+
+---
+
+## 📋 Recent Changes (v0.0.2)
+
+### ✨ New Features
+- **REST API Endpoints:** Complete admin API with standardized responses
+- **System Information:** Enhanced root endpoint with comprehensive system data
+- **Document Ingestion Pipeline:** Support for PDF parsing and Markdown generation
+- **Response Standardization:** Global interceptor for consistent API responses
+
+### 🔧 Improvements
+- **MCP Controller Cleanup:** Simplified SSE handling and improved session management
+- **Dependency Cleanup:** Removed unused packages (`@types/uuid`, `glob`)
+- **Test Suite Enhancement:** Added comprehensive E2E tests for new endpoints
+- **Documentation Updates:** Complete API documentation and project structure
+
+### 🐛 Bug Fixes
+- **Endpoint Duplication:** Eliminated conflicting `/paths/search` endpoint
+- **Response Consistency:** Standardized all API responses with interceptor
+- **Configuration Validation:** Improved environment variable handling
+
+---
+
+## � Akuri Philosophy
 
 This system enforces the software development lifecycle:
 

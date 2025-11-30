@@ -60,6 +60,7 @@ export class LibrarianService implements OnModuleInit {
   }
 
   async onModuleInit() {
+    console.error('🔌 LibrarianService onModuleInit called');
     this.loggerService.info('🚀 Starting search system V3...', {
       operation: 'init',
     });

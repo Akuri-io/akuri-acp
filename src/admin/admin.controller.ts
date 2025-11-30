@@ -28,4 +28,10 @@ export class AdminController {
   serveConfig(@Res() res: Response) {
     res.sendFile(join(__dirname, '..', '..', 'public', 'config.html'));
   }
+
+  // Static file serving for backward compatibility
+  @Get('static/*')
+  serveStaticFiles(@Res() res: Response) {
+    // This will be handled by ServeStaticModule
+  }
 }

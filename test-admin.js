@@ -7,7 +7,7 @@ const tests = [
   { path: '/admin/extensiones', description: 'Página de extensiones' },
   { path: '/admin/install', description: 'Página de instalación' },
   { path: '/admin/rutas', description: 'Página de rutas' },
-  { path: '/', description: 'Ruta raíz (debe dar 404)' },
+  { path: '/', description: 'Ruta raíz (información del sistema)' },
   { path: '/index.html', description: 'Archivo estático directo (debe dar 404)' },
 ];
 
@@ -21,7 +21,7 @@ tests.forEach((test, index) => {
 
     http.get(url, (res) => {
       const statusCode = res.statusCode;
-      const isSuccess = (test.path === '/' || test.path === '/index.html') ?
+      const isSuccess = (test.path === '/index.html') ?
         statusCode === 404 : statusCode === 200;
 
       console.log(`${isSuccess ? '✅' : '❌'} ${test.description}: ${statusCode} - ${url}`);

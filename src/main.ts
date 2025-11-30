@@ -80,14 +80,14 @@ Currently without authentication implemented. Consider adding JWT or API keys fo
       .addTag(
         'Paths Management',
         `
-Endpoints para gestionar rutas de documentación dinámicas.
+Endpoints to manage dynamic documentation paths.
 
-**Funcionalidades:**
-- Listar todas las rutas (fijas + dinámicas)
-- Crear nuevas rutas dinámicas
-- Actualizar rutas existentes
-- Eliminar rutas dinámicas
-- Validar accesibilidad de rutas
+**Features:**
+- List all paths (fixed + dynamic)
+- Create new dynamic paths
+- Update existing paths
+- Delete dynamic paths
+- Validate path accessibility
         `,
       )
       .addTag(
@@ -107,10 +107,29 @@ Endpoints para gestionar rutas de documentación dinámicas.
     // Enable CORS for web interface
     app.enableCors();
 
-    // Start HTTP server only if not in MCP mode
-    if (!isMcpMode) {
+    // Serve static files from public directory, but exclude root path
+    app.useStaticAssets(join(__dirname, '..', 'public'), {
+      // Don't serve index.html for root path, let controller handle it
+      index: false,
+      // Only serve static files for paths that don't match API routes
+      setHeaders: (res, path) => {
+        // Allow controllers to override static file serving
+        if (path.endsWith('index.html')) {
+          res.setHeader('Cache-Control', 'no-cache');
+        }
+      },
+    });
+
+    // Always start HTTP server
+    try {
       await app.listen(port);
       console.error(`🚀 HTTP Server running on http://localhost:${port}`);
+    } catch (error) {
+      console.error(
+        `⚠️ HTTP Server failed to start on port ${port}:`,
+        error.message,
+      );
+      console.error(`🔌 Continuing with MCP server only...`);
     }
 
     // MCP mode: Initialize MCP server alongside HTTP
@@ -119,8 +138,8 @@ Endpoints para gestionar rutas de documentación dinámicas.
       console.error(`🔌 MCP Server initialized alongside HTTP`);
     }
 
-    // Nota: McpService se inicia en onModuleInit, así que en ambos casos
-    // el servidor MCP está disponible para conexiones stdio si es necesario.
+    // Note: McpService starts in onModuleInit, so in both cases
+    // the MCP server is available for stdio connections if necessary.
   } catch (error) {
     console.error('Error during bootstrap:', error);
     process.exit(1);
